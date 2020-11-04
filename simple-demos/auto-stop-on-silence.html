@@ -51,7 +51,32 @@ function stopRecordingCallback() {
 
 var recorder; // globally accessible
 var blobs=[]
+        var stopped_speaking_timeout;
+var play_state="stopped";
 
+function start_playing()
+{
+if ( play_state=== "stopped" ) // ha éppen lejátszik, akkor nem kell start_playing
+video2.onended();
+else if ( play_state=== "paused" ) // ha éppen lejátszik, akkor nem kell start_playing
+video2.play();
+
+
+}
+
+video2.onended = function() {
+    if (blobs.length!=0)
+    {
+    var blob = blobs[0];   
+    blobs.shift();
+    video2.src = URL.createObjectURL(blob);
+    video2.muted = false;
+    video2.play();
+    play_state="playing";
+    }
+    else     play_state="stopped";
+    
+};        
 function start_recording()
 {
 
@@ -62,28 +87,38 @@ video.muted = true;
         recorder = RecordRTC(camera, {
             type: 'video'
         });
-        recorder.startRecording();
 //        recorder.pauseRecording();
-    var blob = recorder.getBlob();
-    video2.src = URL.createObjectURL(blob);
-    video2.muted = false;
-    video2.play()
     
         var speechEvents = hark(camera, {});
+        speechEvents.treshold=-80;
         speechEvents.on('speaking', function() {
-            if(recorder.getBlob()) return;
+        console.log("speaking");
             clearTimeout(stopped_speaking_timeout);
-            recorder.resumeRecording();
+             if (recorder.state==='recording') return;
+//            if(recorder.getBlob()) return;
+//            recorder.resumeRecording();
+            recorder.startRecording();
+            if (!(play_state==="stopped"))
+            play_state="paused";
             video2.pause();
         });
         speechEvents.on('stopped_speaking', function() {
+                console.log("stopped speaking");
+
             if(recorder.getBlob()) return;
+
+
             stopped_speaking_timeout = setTimeout(function() {
-            recorder.pauseRecording();     
-            blob.append(recorder.getBlob());       
-                        video2.play();
-//              start_playing();
-            }, 3 * 1000);
+            recorder.stopRecording(function() {                var blob = recorder.getBlob();
+            blobs.push(blob);  
+            if (blobs.length==1)
+            {
+            start_playing();
+            }     
+ } );     
+             video2.play();
+
+            }, 10 * 1000);
             
 
     });
