@@ -20,10 +20,13 @@
 <hr>
 <video controls autoplay playsinline></video>
 
+<video controls autoplay playsinline></video>
+
 <script src="/RecordRTC.js"></script>
 <script src="https://www.webrtc-experiment.com/hark.js"></script>
 <script>
 var video = document.querySelector('video');
+var video2 = document.querySelectorAll('video')[1];
 var h1 = document.querySelector('h1');
 var default_h1 = h1.innerHTML;
 
@@ -37,17 +40,47 @@ function captureCamera(callback) {
 }
 
 function stopRecordingCallback() {
-    video.srcObject = null;
+    video2.srcObject = null;
     var blob = recorder.getBlob();
-    video.src = URL.createObjectURL(blob);
+    video2.src = URL.createObjectURL(blob);
 
     recorder.camera.stop();
-    video.muted = false;
+    video2.muted = false;
+    video2.play()
 }
 
 var recorder; // globally accessible
 
+function start_recording()
+{
+
+captureCamera(function(camera) {
+video.muted = true;
+        video.srcObject = camera;
+
+        recorder = RecordRTC(camera, {
+            type: 'video'
+        });
+
+        recorder.startRecording();
+
+setTimeout(function() {
+recorder.stopRecording(stopRecordingCallback);
+
+               recorder.stopRecording(stopRecordingCallback);
+               start_recording();
+               
+            }, 10 * 1000);
+
+    });
+    
+
+
+
+}
+
 document.getElementById('btn-start-recording').onclick = function() {
+    start_recording();return;
     this.disabled = true;
     captureCamera(function(camera) {
         video.muted = true;
@@ -63,7 +96,7 @@ document.getElementById('btn-start-recording').onclick = function() {
         var stopped_speaking_timeout;
         var speechEvents = hark(camera, {});
 
-        speechEvents.on('speaking', function() {
+        /*speechEvents.on('speaking', function() {
             if(recorder.getBlob()) return;
 
             clearTimeout(stopped_speaking_timeout);
@@ -83,7 +116,13 @@ document.getElementById('btn-start-recording').onclick = function() {
                 document.getElementById('btn-stop-recording').click();
                 h1.innerHTML = 'Recording is now stopped.';
             }, max_seconds * 1000);
+*/
+setTimeout(function() {
+recorder.stopRecording(stopRecordingCallback);
 
+                document.getElementById('btn-stop-recording').click();
+                h1.innerHTML = 'Recording is now stopped.';
+            }, 10 * 1000);
             
             // just for logging purpose (you ca remove below code)
             var seconds = max_seconds;
@@ -98,7 +137,7 @@ document.getElementById('btn-start-recording').onclick = function() {
 
                 setTimeout(looper, 1000);
             })();
-        });
+//        });
 
         // release camera on stopRecording
         recorder.camera = camera;
@@ -110,7 +149,16 @@ document.getElementById('btn-start-recording').onclick = function() {
 document.getElementById('btn-stop-recording').onclick = function() {
     this.disabled = true;
     recorder.stopRecording(stopRecordingCallback);
+//    recorder.stopRecording(stopRecordingCallback);
+//recorder.startRecording();
 };
+
+window.onload=function()
+{
+//document.getElementById('btn-start-recording').onclick();
+}
+
+
 </script>
 
 <footer style="margin-top: 20px;"><small id="send-message"></small></footer>
