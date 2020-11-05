@@ -56,6 +56,8 @@ var blobs=[]
         var stopped_speaking_timeout;
 var play_state="stopped";
 
+var recording_state=0;
+
 function start_playing()
 {
 if ( play_state=== "stopped" ) // ha éppen lejátszik, akkor nem kell start_playing
@@ -78,7 +80,16 @@ video2.onended = function() {
     }
     else     play_state="stopped";
     
-};        
+};     
+
+setInterval(function() {
+console.log(recording_state);
+if (recorder!=undefined && recording_state==0)
+             recorder.startRecording();
+             
+
+            }, 2 * 1000);
+               
 function start_recording()
 {
 
@@ -96,10 +107,11 @@ video.muted = true;
         speechEvents.on('speaking', function() {
         console.log("speaking");
             clearTimeout(stopped_speaking_timeout);
-             if (recorder.state==='recording') return;
+             //if (recorder.state==='recording') return;
 //            if(recorder.getBlob()) return;
 //            recorder.resumeRecording();
-            recorder.startRecording();
+            //recorder.startRecording();
+            recording_state=1;
             if (!(play_state==="stopped"))
             play_state="paused";
             video2.pause();
@@ -107,10 +119,12 @@ video.muted = true;
         speechEvents.on('stopped_speaking', function() {
                 console.log("stopped speaking");
 
-            if(recorder.getBlob()) return;
+           // if(recorder.getBlob()) return;
 
 
             stopped_speaking_timeout = setTimeout(function() {
+            console.log("stopped speaking timeout elapsed");
+            recording_state=0;
             recorder.stopRecording(function() {                var blob = recorder.getBlob();
             blobs.push(blob);  
             if (blobs.length==1)
