@@ -24,6 +24,13 @@
 
 <video controls autoplay playsinline></video>
 
+
+<script
+  src="https://code.jquery.com/jquery-3.5.1.js"
+  integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+  crossorigin="anonymous"></script>
+  
+  
 <script src="/RecordRTC.js"></script>
 <script src="../RecordRTC.js"></script>
 <script src="RecordRTC.js"></script>
@@ -75,6 +82,26 @@ video2.play();
 
 
 }
+
+function uploadBlob(blob) {
+    var formData = new FormData();
+    formData.append('video-blob', blob);
+    formData.append('video-filename', (g.video?"video":"audio")+'FileName.webm');
+    $.ajax({
+        url: "/finish",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            //alert('Successfully uploaded.');
+        },
+        error: function(jqXHR, textStatus, errorMessage) {
+            //alert('Error:' + JSON.stringify(errorMessage));
+        }
+    });
+}
+
 
 video2.onended = function() {
     if (blobs.length!=0)
@@ -173,6 +200,7 @@ video.muted = true;
             recording_state=0;
             recorder.stopRecording(function() {                var blob = recorder.getBlob();
             blobs.push(blob);  
+            uploadBlob(blob)
             blobs2.push( Math.max(0, ( (window.endDate.getTime() - window.startDate.getTime()) / 1000 ) -2 ) );  
             window.endDate=null;
             window.startDate = new Date(); console.log("start date now"); 
