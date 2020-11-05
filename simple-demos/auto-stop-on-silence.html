@@ -15,6 +15,8 @@
 
 <br>
 <button id="btn-start-recording">Start Recording</button>
+<button id="btn-start-recording_audio">Start Recording audio</button>
+
 <button id="btn-stop-recording" disabled style="display: none;">Stop Recording</button>
 
 <hr>
@@ -33,10 +35,11 @@ var h1 = document.querySelector('h1');
 var default_h1 = h1.innerHTML;
 window.startDate = null;
 window.endDate   = null;
-
+var g={};
+g.video=true;
 
 function captureCamera(callback) {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(function(camera) {
+    navigator.mediaDevices.getUserMedia({ audio: true, video: g.video }).then(function(camera) {
         callback(camera);
     }).catch(function(error) {
         alert('Unable to capture your camera. Please check console logs.');
@@ -197,6 +200,11 @@ video.muted = true;
 document.getElementById('btn-start-recording').onclick = function() {
     start_recording();return;
 };
+document.getElementById('btn-start-recording_audio').onclick = function() {
+g.video=false;
+    start_recording();return;
+};
+
 
 document.getElementById('btn-stop-recording').onclick = function() {
     this.disabled = true;
@@ -204,6 +212,8 @@ document.getElementById('btn-stop-recording').onclick = function() {
 //    recorder.stopRecording(stopRecordingCallback);
 //recorder.startRecording();
 };
+
+
 
 window.onload=function()
 {
