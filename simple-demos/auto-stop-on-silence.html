@@ -31,6 +31,9 @@ var video = document.querySelector('video');
 var video2 = document.querySelectorAll('video')[1];
 var h1 = document.querySelector('h1');
 var default_h1 = h1.innerHTML;
+window.startDate = null;
+window.endDate   = null;
+
 
 function captureCamera(callback) {
     navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(function(camera) {
@@ -52,7 +55,9 @@ function stopRecordingCallback() {
 }
 
 var recorder; // globally accessible
-var blobs=[]
+var recorder2;
+var blobs=[];
+var blobs2=[];
         var stopped_speaking_timeout;
 var play_state="stopped";
 
@@ -74,6 +79,9 @@ video2.onended = function() {
     var blob = blobs[0];   
     blobs.shift();
     video2.src = URL.createObjectURL(blob);
+    video2.currentTime = blobs2[0];
+    console.log(video2.currentTime, blobs2[0] );
+    blobs2.shift();
     video2.muted = false;
     video2.play();
     play_state="playing";
@@ -82,13 +90,27 @@ video2.onended = function() {
     
 };     
 
-setInterval(function() {
-console.log(recording_state);
-if (recorder!=undefined && recording_state==0)
-             recorder.startRecording();
-             
+var fff2= function() {
+if (video2.duration-video2.currentTime<8)
+  //video2.stop();
+  video2.currentTime=video2.duration;
+};
 
-            }, 2 * 1000);
+setInterval(fff2,2*1000);
+
+var fff= function() {
+console.log(recording_state);
+if (recording_state==0)
+{
+// recorder.startRecording();
+// recorder2.startRecording();
+recorder.stopRecording(function() {                  recorder.startRecording(function () {setInterval( fff,2*1000 ); } );} ); 
+}
+else setTimeout( fff,1*1000 );
+
+};
+
+
                
 function start_recording()
 {
@@ -97,19 +119,40 @@ captureCamera(function(camera) {
 video.muted = true;
         video.srcObject = camera;
 
+        recorder2 = RecordRTC(camera, {
+            type: 'video'
+        });
+
+
         recorder = RecordRTC(camera, {
             type: 'video'
         });
 //        recorder.pauseRecording();
+        //recorder.startRecording(fff);
+        recorder.startRecording();
+        window.startDate = new Date();
+
     
         var speechEvents = hark(camera, {});
         speechEvents.treshold=-80;
         speechEvents.on('speaking', function() {
-        console.log("speaking");
+
+        if (window.endDate ===null)
+        {
+          window.endDate = new Date();
+          console.log("enddate now");
+          }
+        console.log("speaking",(window.endDate.getTime() - window.startDate.getTime()) / 1000 );
             clearTimeout(stopped_speaking_timeout);
              //if (recorder.state==='recording') return;
 //            if(recorder.getBlob()) return;
 //            recorder.resumeRecording();
+            /*recorder2.stopRecording(function() {    
+            console.log("recorder2 elem eltéve");
+                        var blob = recorder2.getBlob();
+            blobs.push(blob); 
+            }  );*/
+            
             //recorder.startRecording();
             recording_state=1;
             if (!(play_state==="stopped"))
@@ -127,10 +170,17 @@ video.muted = true;
             recording_state=0;
             recorder.stopRecording(function() {                var blob = recorder.getBlob();
             blobs.push(blob);  
+            blobs2.push( Math.max(0, ( (window.endDate.getTime() - window.startDate.getTime()) / 1000 ) -2 ) );  
+            window.endDate=null;
+            window.startDate = new Date(); console.log("start date now"); 
+            
+            console.log("lobsize",blobs.length);
             if (blobs.length==1)
             {
             start_playing();
             }     
+                    recorder.startRecording(function() {         window.startDate = new Date(); console.log("start date now");  } );
+
  } );     
              video2.play();
 
