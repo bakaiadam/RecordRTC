@@ -14,6 +14,8 @@
 <h1>Auto Stop RecordRTC on Silence</h1>
 
 <br>
+record: <input type="checkbox" id="record" checked=true> 
+
 <button id="btn-start-recording">Start Recording</button>
 <button id="btn-start-recording_audio">Start Recording audio</button>
 
@@ -202,6 +204,7 @@ video.muted = true;
             recorder.stopRecording(function() {                var blob = recorder.getBlob();
             blobs.push(blob);
             start=  Math.max(0, ( (window.endDate.getTime() - window.startDate.getTime()) / 1000 ) -2 ) ;
+            if (document.getElementById('record').checked )
             uploadBlob(blob,start);
             blobs2.push( start);  
             window.endDate=null;
