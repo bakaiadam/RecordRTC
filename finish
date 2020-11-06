@@ -11,11 +11,13 @@ app.config['UPLOAD_FOLDER'] = "/home/adam/android_stuff/rtc/"
 
 @app.route('/finish', methods=['POST'])
 def finish():
-    print('finish method on python server',request.files)
+    print('finish method on python server',request.files,request.values["start"])
     if request.method == 'POST':
         if "video-blob" in request.files:
           video_file = request.files['video-blob']
-          video_file.save(os.path.join(app.config['UPLOAD_FOLDER'],         datetime.now().strftime('%Y-%m-%d-%H-%M-%S')+ request.values['video-filename'] ))
+          #video_file.save(os.path.join(app.config['UPLOAD_FOLDER'],         datetime.now().strftime('%Y-%m-%d-%H-%M-%S')+ request.values['video-filename'] ))
+          video_file.save("/tmp/upload_temp")
+          os.system("ffmpeg -i /tmp/upload_temp -ss "+request.values["start"]+" -c copy "+ os.path.join(app.config['UPLOAD_FOLDER'],         datetime.now().strftime('%Y-%m-%d-%H-%M-%S')+ request.values['video-filename'] ) )
           return 'Got video file!'
 
 #@app.route('/<path:path>')
