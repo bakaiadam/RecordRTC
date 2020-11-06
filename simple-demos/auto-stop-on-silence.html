@@ -43,6 +43,9 @@ a:active {
 <a href="chrome://flags/#unsafely-treat-insecure-origin-as-secure" > set flags </a>
 <br>
 record: <input type="checkbox" id="record" checked=true> 
+
+pause when speak: <input type="checkbox" id="pause_when_speak" checked=true> 
+
 <button id="btn-start-recording">Start Recording</button>
 <button id="btn-start-recording_audio">Start Recording audio</button>
 
@@ -215,15 +218,22 @@ video.muted = true;
             
             //recorder.startRecording();
             recording_state=1;
+                        if (document.getElementById('pause_when_speak').checked )
+                        {
             if (!(play_state==="stopped"))
             play_state="paused";
             video2.pause();
+            }
         });
         speechEvents.on('stopped_speaking', function() {
                 console.log("stopped speaking");
 
            // if(recorder.getBlob()) return;
 
+
+            stopped_timeout =10;
+            if (!document.getElementById('pause_when_speak').checked )
+              stopped_timeout=2;
 
             stopped_speaking_timeout = setTimeout(function() {
             console.log("stopped speaking timeout elapsed");
@@ -247,7 +257,7 @@ video.muted = true;
  } );     
              video2.play();
 
-            }, 10 * 1000);
+            }, stopped_timeout * 1000);
             
 
     });
