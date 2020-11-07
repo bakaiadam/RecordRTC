@@ -46,6 +46,9 @@ record: <input type="checkbox" id="record" checked=true>
 
 pause when speak: <input type="checkbox" id="pause_when_speak" checked=true> 
 
+speaking indicator: <input type="checkbox" id="speaking_indicator" checked=false   disabled="disabled" > 
+
+
 <button id="btn-start-recording">Start Recording</button>
 <button id="btn-start-recording_audio">Start Recording audio</button>
 
@@ -196,9 +199,9 @@ video.muted = true;
         window.startDate = new Date();
 
     
-        var speechEvents = hark(camera, {});
-        speechEvents.treshold=-80;
-        speechEvents.on('speaking', function() {
+        g.speechEvents = hark(camera, {});
+        g.speechEvents.treshold=-80;
+        g.speechEvents.on('speaking', function() {
 
         if (window.endDate ===null)
         {
@@ -225,7 +228,7 @@ video.muted = true;
             video2.pause();
             }
         });
-        speechEvents.on('stopped_speaking', function() {
+        g.speechEvents.on('stopped_speaking', function() {
                 console.log("stopped speaking");
 
            // if(recorder.getBlob()) return;
