@@ -111,6 +111,7 @@ var recorder; // globally accessible
 var recorder2;
 var blobs=[];
 var blobs2=[];
+var blobs3=[];
         var stopped_speaking_timeout;
 var play_state="stopped";
 
@@ -145,7 +146,7 @@ function uploadBlob(blob,start) {
         }
     });
 }
-
+g.duration=99999999999;
 
 video2.onended = function() {
     if (blobs.length!=0)
@@ -156,6 +157,8 @@ video2.onended = function() {
     video2.currentTime = blobs2[0];
     console.log(video2.currentTime, blobs2[0] );
     blobs2.shift();
+    g.duration=blobs3[0];
+    blobs3.shift();
     video2.muted = false;
     video2.play();
     play_state="playing";
@@ -165,9 +168,16 @@ video2.onended = function() {
 };     
 
 var fff2= function() {
-if (video2.duration-video2.currentTime<8)
+//if (video2.duration-video2.currentTime<8)
+console.log ( g.duration,video2.currentTime,g.stopped_timeout-2 )
+if (g.duration-video2.currentTime<g.stopped_timeout-2)
+//console.log ( video2.duration,video2.currentTime,g.stopped_timeout-2 )
+//if (video2.duration-video2.currentTime<g.stopped_timeout-2)
   //video2.stop();
-  video2.currentTime=video2.duration;
+  {
+  video2.currentTime=g.duration;
+  console.log("yepp")
+  }
 };
 
 setInterval(fff2,2*1000);
@@ -244,9 +254,9 @@ video.muted = true;
            // if(recorder.getBlob()) return;
 
 
-            stopped_timeout =10;
+            g.stopped_timeout =10;
             if (!document.getElementById('pause_when_speak').checked )
-              stopped_timeout=2;
+              g.stopped_timeout=2;
 
             stopped_speaking_timeout = setTimeout(function() {
             console.log("stopped speaking timeout elapsed");
@@ -257,6 +267,8 @@ video.muted = true;
             if (document.getElementById('record').checked )
             uploadBlob(blob,start);
             blobs2.push( start);  
+            window.endDate = new Date();
+            blobs3.push(( (window.endDate.getTime() - window.startDate.getTime()) / 1000 )   );   //ez a duration
             window.endDate=null;
             window.startDate = new Date(); console.log("start date now"); 
             
@@ -270,7 +282,7 @@ video.muted = true;
  } );     
              video2.play();
 
-            }, stopped_timeout * 1000);
+            }, g.stopped_timeout * 1000);
             
 
     });
