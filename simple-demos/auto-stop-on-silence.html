@@ -38,6 +38,13 @@ a:active {
 
 </style>
 
+<div class="slidecontainer">
+  <input type="range" min="-100" max="0" value="-80" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
+<div id="rangeshow"> </div> 
+    
+</div>  </br>
+
+
 <title>Auto Stop RecordRTC on Silence</title>
 <h1>Auto Stop RecordRTC on Silence</h1>
 <a href="chrome://flags/#unsafely-treat-insecure-origin-as-secure" > set flags </a>
@@ -46,7 +53,7 @@ record: <input type="checkbox" id="record" checked=true>
 
 pause when speak: <input type="checkbox" id="pause_when_speak" checked=true> 
 
-speaking indicator: <input type="checkbox" id="speaking_indicator" checked=false   disabled="disabled" > 
+speaking indicator: <input type="checkbox" id="speaking_indicator"    disabled="disabled" > 
 
 
 <button id="btn-start-recording">Start Recording</button>
@@ -79,6 +86,7 @@ window.startDate = null;
 window.endDate   = null;
 var g={};
 g.video=true;
+document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
 
 function captureCamera(callback) {
     navigator.mediaDevices.getUserMedia({ audio: true, video: g.video }).then(function(camera) {
@@ -220,6 +228,7 @@ video.muted = true;
             }  );*/
             
             //recorder.startRecording();
+            document.getElementById('speaking_indicator').checked =true;
             recording_state=1;
                         if (document.getElementById('pause_when_speak').checked )
                         {
@@ -230,6 +239,7 @@ video.muted = true;
         });
         g.speechEvents.on('stopped_speaking', function() {
                 console.log("stopped speaking");
+                            document.getElementById('speaking_indicator').checked =false;
 
            // if(recorder.getBlob()) return;
 
