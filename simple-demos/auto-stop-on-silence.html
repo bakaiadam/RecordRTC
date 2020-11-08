@@ -39,8 +39,11 @@ a:active {
 </style>
 
 <div class="slidecontainer">
-  <input type="range" min="-100" max="0" value="-80" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
-<div id="rangeshow"> </div> 
+  wait till new record:<input type="range" min="0" max="100" value="100" class="slider" id="myRangewait" style="width:100%; height: 30px" oninput="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" onchange="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" > 
+seconds: <div id="rangeshowwait"> </div> 
+  
+  threshold <input type="range" min="-100" max="0" value="-80" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
+decibell: <div id="rangeshow"> </div> 
     
 </div>  </br>
 
@@ -78,6 +81,22 @@ speaking indicator: <input type="checkbox" id="speaking_indicator"    disabled="
 <script src="RecordRTC.js"></script>
 <script src="https://www.webrtc-experiment.com/hark.js"></script>
 <script>
+
+function logslider(position) {
+  // position will be between 0 and 100
+  var minp = 0;
+  var maxp = 100;
+
+  // The result should be between 100 an 10000000
+  var minv = Math.log(5);
+  var maxv = Math.log(9999);
+
+  // calculate adjustment factor
+  var scale = (maxv-minv) / (maxp-minp);
+
+  return Math.exp(minv + scale*(position-minp));
+}
+
 var video = document.querySelector('video');
 var video2 = document.querySelectorAll('video')[1];
 var h1 = document.querySelector('h1');
@@ -86,7 +105,7 @@ window.startDate = null;
 window.endDate   = null;
 var g={};
 g.video=true;
-document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
+//document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
 
 function captureCamera(callback) {
     navigator.mediaDevices.getUserMedia({ audio: true, video: g.video }).then(function(camera) {
@@ -168,6 +187,8 @@ video2.onended = function() {
 };     
 
 var fff2= function() {
+
+
 //if (video2.duration-video2.currentTime<8)
 console.log ( g.duration,video2.currentTime,g.stopped_timeout-2 )
 if (g.duration-video2.currentTime<g.stopped_timeout-2)
@@ -177,9 +198,23 @@ if (g.duration-video2.currentTime<g.stopped_timeout-2)
   {
   video2.currentTime=g.duration;
   }
+  
+adate = new Date();
+if (window.startDate!=null)
+{
+            adates= ( (adate.getTime() - window.startDate.getTime()) / 1000 )   ;   //ez a duration
+             
+if (adates>document.getElementById('rangeshowwait').innerHTML )
+{
+console.log("update threshold");
+g.speechEvents.setThreshold(0);
+}
+
+}
+  
 };
 
-setInterval(fff2,2*1000);
+setInterval(fff2,1*1000);
 
 var fff= function() {
 console.log(recording_state);
@@ -270,7 +305,8 @@ video.muted = true;
             blobs3.push(( (window.endDate.getTime() - window.startDate.getTime()) / 1000 )   );   //ez a duration
             window.endDate=null;
             window.startDate = new Date(); console.log("start date now"); 
-            
+            g.speechEvents.setThreshold(document.getElementById('rangeshow').innerHTML);
+
             console.log("lobsize",blobs.length);
             if (blobs.length==1)
             {
@@ -311,7 +347,10 @@ document.getElementById('btn-stop-recording').onclick = function() {
 
 window.onload=function()
 {
-//document.getElementById('btn-start-recording').onclick();
+document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
+document.getElementById('rangeshowwait').innerHTML=logslider(document.getElementById('myRangewait').value);
+//console.log("a")
+// document.getElementById('btn-start-recording').onclick();
 }
 
 
