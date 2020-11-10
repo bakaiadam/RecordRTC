@@ -300,7 +300,7 @@ video.muted = true;
             start=  Math.max(0, ( (window.endDate.getTime() - window.startDate.getTime()) / 1000 ) -2 ) ;
             if (document.getElementById('record').checked )
             uploadBlob(blob,start);
-            blobs2.push( start);  
+            blobs2.push( start);
             window.endDate = new Date();
             blobs3.push(( (window.endDate.getTime() - window.startDate.getTime()) / 1000 )   );   //ez a duration
             window.endDate=null;
