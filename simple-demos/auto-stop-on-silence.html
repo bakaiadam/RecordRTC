@@ -42,7 +42,7 @@ a:active {
   wait till new record:<input type="range" min="0" max="100" value="100" class="slider" id="myRangewait" style="width:100%; height: 30px" oninput="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" onchange="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" > 
 seconds: <div id="rangeshowwait"> </div> 
   
-  threshold <input type="range" min="-100" max="0" value="-80" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
+  threshold <input type="range" min="-100" max="0" value="-40" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
 decibell: <div id="rangeshow"> </div> 
     
 </div>  </br>
@@ -107,6 +107,10 @@ var g={};
 g.video=true;
 //document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
 
+g.startdates=[];
+g.stopdates=[];
+
+
 function captureCamera(callback) {
     navigator.mediaDevices.getUserMedia({ audio: true, video: g.video }).then(function(camera) {
         callback(camera);
@@ -131,6 +135,10 @@ var recorder2;
 var blobs=[];
 var blobs2=[];
 var blobs3=[];
+var beforespace=0.7;
+var space=0.7;
+
+
         var stopped_speaking_timeout;
 var play_state="stopped";
 
@@ -166,6 +174,8 @@ function uploadBlob(blob,start) {
     });
 }
 g.duration=99999999999;
+g.blobs2start=[];
+g.blobs3stop=[];
 
 video2.onended = function() {
     if (blobs.length!=0)
@@ -173,10 +183,24 @@ video2.onended = function() {
     var blob = blobs[0];   
     blobs.shift();
     video2.src = URL.createObjectURL(blob);
-    video2.currentTime = blobs2[0];
-    console.log(video2.currentTime, blobs2[0] );
+    video2.currentTime = blobs2[0][0]-beforespace;
+    blobs2[0].shift();
+    console.log("seek to",video2.currentTime, blobs2[0] );
+    g.blobs2start=blobs2[0];
+    g.blobs3stop=blobs3[0];
+  /*  g.blobs2start=[];
+    g.blobs3stop=[];
+    for (i=0;i<blobs2[0].length;i++)
+    {
+      if (blobs2[i]+space<blobs3[0]-space)
+    
+    }
+*/    
+    
+
     blobs2.shift();
-    g.duration=blobs3[0];
+    
+//    g.duration=blobs3[0];
     blobs3.shift();
     video2.muted = false;
     video2.play();
@@ -190,13 +214,36 @@ var fff2= function() {
 
 
 //if (video2.duration-video2.currentTime<8)
-console.log ( g.duration,video2.currentTime,g.stopped_timeout-2 )
+console.log ( g.duration,video2.currentTime, g.blobs2start[0]-beforespace, g.blobs3stop[0]+space ,"alma")
+//g.blobs2start=[];
+
+
+if (video2.currentTime<g.blobs2start[0]-beforespace &&
+( video2.currentTime>g.blobs3stop[0]+space  ) 
+
+)
+{
+  video2.currentTime=g.blobs2start[0]-beforespace;
+  g.blobs2start.shift(); 
+  g.blobs3stop.shift();
+
+}
+else
+if (video2.currentTime>g.blobs2start[0] )
+{
+  g.blobs2start.shift(); 
+  g.blobs3stop.shift();
+}
+
+
+//g.blobs3stop=[];
+
 if (g.duration-video2.currentTime<g.stopped_timeout-2)
 //console.log ( video2.duration,video2.currentTime,g.stopped_timeout-2 )
 //if (video2.duration-video2.currentTime<g.stopped_timeout-2)
   //video2.stop();
   {
-  video2.currentTime=g.duration;
+  //video2.currentTime=g.duration;
   }
   
 adate = new Date();
@@ -214,7 +261,7 @@ g.speechEvents.setThreshold(0);
   
 };
 
-setInterval(fff2,1*1000);
+setInterval(fff2,0.1*1000);
 
 var fff= function() {
 console.log(recording_state);
@@ -254,6 +301,7 @@ video.muted = true;
         g.speechEvents = hark(camera, {});
         g.speechEvents.treshold=-80;
         g.speechEvents.on('speaking', function() {
+        g.startdates.push(elapsed() );
 
         if (window.endDate ===null)
         {
@@ -282,6 +330,7 @@ video.muted = true;
             }
         });
         g.speechEvents.on('stopped_speaking', function() {
+        g.stopdates.push(elapsed() );
                 console.log("stopped speaking");
                             document.getElementById('speaking_indicator').checked =false;
 
@@ -300,9 +349,15 @@ video.muted = true;
             start=  Math.max(0, ( (window.endDate.getTime() - window.startDate.getTime()) / 1000 ) -2 ) ;
             if (document.getElementById('record').checked )
             uploadBlob(blob,start);
-            blobs2.push( start);
+            g.startdates.push(999999999999999999);//az utolsó után ugorjunk egy nagyot
+            blobs2.push( g.startdates);
             window.endDate = new Date();
-            blobs3.push(( (window.endDate.getTime() - window.startDate.getTime()) / 1000 )   );   //ez a duration
+//            blobs3.push(( (window.endDate.getTime() - window.startDate.getTime()) / 1000 )   );   //ez a duration
+            blobs3.push( g.stopdates);
+            g.startdates=[];
+//            g.stopdates=[-999999];//ilyenkor lett vége az utolsónak
+            g.stopdates=[];//ilyenkor lett vége az utolsónak
+
             window.endDate=null;
             window.startDate = new Date(); console.log("start date now"); 
             g.speechEvents.setThreshold(document.getElementById('rangeshow').innerHTML);
@@ -335,6 +390,11 @@ g.video=false;
     start_recording();return;
 };
 
+function elapsed()
+{
+ f = new Date();
+ return (( (f - window.startDate.getTime()) / 1000 )   );
+}
 
 document.getElementById('btn-stop-recording').onclick = function() {
     this.disabled = true;
