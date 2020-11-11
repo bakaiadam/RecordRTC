@@ -39,10 +39,15 @@ a:active {
 </style>
 
 <div class="slidecontainer">
-  wait till new record:<input type="range" min="0" max="100" value="100" class="slider" id="myRangewait" style="width:100%; height: 30px" oninput="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" onchange="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);" > 
+  wait till silence is declared:<input type="range" min="0" max="100" value="6" class="slider" id="myRangesilence" style="width:100%; height: 30px" oninput="document.getElementById('rangesilence').innerHTML=logslider2(this.value);storage_set(this.id,this.value);" onchange="document.getElementById('rangesilence').innerHTML=logslider2(this.value);storage_set(this.id,this.value);" > 
+seconds treated as silence: <div id="rangesilence"> </div> 
+
+
+<div class="slidecontainer">
+ max record length approx:<input type="range" min="0" max="100" value="100" class="slider" id="myRangewait" style="width:100%; height: 30px" oninput="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);storage_set(this.id,this.value);" onchange="document.getElementById('rangeshowwait').innerHTML=logslider(this.value);storage_set(this.id,this.value);" > 
 seconds: <div id="rangeshowwait"> </div> 
   
-  threshold <input type="range" min="-100" max="0" value="-40" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);            " >
+  threshold <input type="range" min="-100" max="0" value="-40" class="slider" id="myRange" style="width:100%; height: 30px" oninput="document.getElementById('rangeshow').innerHTML=this.value;g.speechEvents.setThreshold(this.value);storage_set(this.id,this.value);" onchange="document.getElementById('rangeshow').innerHTML=this.value; g.speechEvents.setThreshold(this.value);storage_set(this.id,this.value);            " >
 decibell: <div id="rangeshow"> </div> 
     
 </div>  </br>
@@ -81,6 +86,8 @@ speaking indicator: <input type="checkbox" id="speaking_indicator"    disabled="
 <script src="RecordRTC.js"></script>
 <script src="https://www.webrtc-experiment.com/hark.js"></script>
 <script>
+var myStorage = window.localStorage;
+
 
 function logslider(position) {
   // position will be between 0 and 100
@@ -90,6 +97,21 @@ function logslider(position) {
   // The result should be between 100 an 10000000
   var minv = Math.log(5);
   var maxv = Math.log(9999);
+
+  // calculate adjustment factor
+  var scale = (maxv-minv) / (maxp-minp);
+
+  return Math.exp(minv + scale*(position-minp));
+}
+
+function logslider2(position) {
+  // position will be between 0 and 100
+  var minp = 0;
+  var maxp = 100;
+
+  // The result should be between 100 an 10000000
+  var minv = Math.log(1);
+  var maxv = Math.log(60);
 
   // calculate adjustment factor
   var scale = (maxv-minv) / (maxp-minp);
@@ -337,9 +359,10 @@ video.muted = true;
            // if(recorder.getBlob()) return;
 
 
-            g.stopped_timeout =10;
-            if (!document.getElementById('pause_when_speak').checked )
-              g.stopped_timeout=2;
+//            g.stopped_timeout =10;
+  //          if (!document.getElementById('pause_when_speak').checked )
+    //          g.stopped_timeout=2;
+            g.stopped_timeout = document.getElementById('rangesilence').innerHTML;
 
             stopped_speaking_timeout = setTimeout(function() {
             console.log("stopped speaking timeout elapsed");
@@ -404,11 +427,37 @@ document.getElementById('btn-stop-recording').onclick = function() {
 };
 
 
+function storage_get(name,def)
+{
+if (localStorage.getItem(name) === null) {
+  return def;
+}
+else
+return Number(localStorage.getItem(name) )
+}
+
+function storage_set(name,value)
+{
+localStorage.setItem(name,value);
+}
+
 
 window.onload=function()
 {
-document.getElementById('rangeshow').innerHTML=document.getElementById('myRange').value;
-document.getElementById('rangeshowwait').innerHTML=logslider(document.getElementById('myRangewait').value);
+document.getElementById('rangeshow').innerHTML=storage_get('myRange',document.getElementById('myRange').value);
+document.getElementById('rangeshowwait').innerHTML=logslider(storage_get("myrangewait",document.getElementById('myRangewait').value));
+document.getElementById('rangesilence').innerHTML=logslider2(storage_get('myRangesilence',document.getElementById('myRangesilence').value));
+
+document.getElementById('myRange').value=storage_get('myRange',document.getElementById('myRange').value);
+document.getElementById('myRangewait').value=storage_get("myrangewait",document.getElementById('myRangewait').value);
+document.getElementById('myRangesilence').value=storage_get('myRangesilence',document.getElementById('myRangesilence').value);
+
+/*
+document.getElementById('rangeshow').innerHTML=storage_get('myRange',document.getElementById('myRange').value);
+document.getElementById('rangeshowwait').innerHTML=logslider(storage_get("myrangewait",document.getElementById('myRangewait').value));
+document.getElementById('rangesilence').innerHTML=logslider(storage_get('myRangesilence',document.getElementById('myRangesilence').value));
+*/
+
 //console.log("a")
 // document.getElementById('btn-start-recording').onclick();
 }
